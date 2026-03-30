@@ -1,13 +1,30 @@
 #!/usr/bin/env python
 
+import sys
+import argparse
 import rclpy
 
 from ros_tcp_endpoint import TcpServer
 
 
 def main(args=None):
-    rclpy.init(args=args)
-    tcp_server = TcpServer("UnityEndpoint")
+    if args is None:
+        args = sys.argv
+
+    if "--ros-args" in args:
+        i = args.index("--ros-args")
+        app_args = args[1:i]
+        ros_args = [args[0]] + args[i:]
+    else:
+        app_args = args[1:]
+        ros_args = [args[0]]
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("yaml_path")
+    parsed = parser.parse_args(app_args)
+
+    rclpy.init(args=ros_args)
+    tcp_server = TcpServer("UnityEndpoint", parsed.yaml_path)
 
     tcp_server.start()
 

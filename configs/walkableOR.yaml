@@ -1,0 +1,8 @@
+project: walkableOR
+version: 0.0.1
+# possible keys are:
+# history, depth, reliability, durability, lifespan, deadline, liveliness, liveliness_lease_duration, avoid_ros_namespace_conventions
+# As values, use the integer representations which can be found starting from here: https://github.com/ros2/rclpy/blob/fe05f94e75fea62eae83eadfd836358f35233f93/rclpy/rclpy/qos.py#L292
+topics:
+  /rgbd_recording/pointcloud:
+    reliability: 2 # BEST_EFFORT

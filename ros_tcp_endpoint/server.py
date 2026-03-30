@@ -18,6 +18,9 @@ import json
 import sys
 import threading
 import importlib
+import yaml
+
+from pathlib import Path
 
 from rclpy.node import Node
 from rclpy.parameter import Parameter
@@ -37,12 +40,13 @@ class TcpServer(Node):
     Initializes ROS node and TCP server.
     """
 
-    def __init__(self, node_name, buffer_size=1024, connections=10, tcp_ip=None, tcp_port=None):
+    def __init__(self, node_name, yaml_path, buffer_size=1024, connections=10, tcp_ip=None, tcp_port=None):
         """
         Initializes ROS node and class variables.
 
         Args:
             node_name:               ROS node name for executing code
+            yaml_path:               Path to a yaml file that contains topic-specific QoS settings
             buffer_size:             The read buffer size used when reading from a socket
             connections:             Max number of queued connections. See Python Socket documentation
         """
@@ -75,6 +79,7 @@ class TcpServer(Node):
         self.syscommands = SysCommands(self)
         self.pending_srv_id = None
         self.pending_srv_is_request = False
+        self.topic_specific_qos = self._load_yaml_file(yaml_path)
 
     def start(self, publishers=None, subscribers=None):
         if publishers is not None:
@@ -186,6 +191,21 @@ class TcpServer(Node):
             ros_node.destroy_node()
 
         self.destroy_node()
+
+    def _load_yaml_file(self, fpath):
+        """
+            Load yaml file with topic-specific QoS settings and return it as dict
+        """
+        path = Path(fpath)
+        if not path.is_file():
+            return {}
+
+        with path.open("r", encoding="utf-8") as f:
+            d = yaml.safe_load(f)
+            if "topics" in d:
+                return d["topics"]
+            else:
+                return {}
 
 
 class SysCommands:

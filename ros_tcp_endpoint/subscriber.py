@@ -43,9 +43,8 @@ class RosSubscriber(RosReceiver):
         self.tcp_server = tcp_server
         self.queue_size = queue_size
 
-        qos_profile = QoSProfile(depth=queue_size,
-                                 reliability=QoSReliabilityPolicy.BEST_EFFORT
-        )
+        # Construct QoS Profile with topic-sensitive values
+        qos_profile = self.construct_qos_profile(topic, tcp_server.topic_specific_qos, queue_size)
 
         # Start Subscriber listener function
         self.subscription = self.create_subscription(
@@ -74,3 +73,14 @@ class RosSubscriber(RosReceiver):
         """
         self.destroy_subscription(self.subscription)
         self.destroy_node()
+
+    def construct_qos_profile(self, topic_name, topic_specific_qos, queue_size):
+        """
+            Constructs a valid QoS profile with topic-specific values
+        """
+        params = topic_specific_qos[topic_name] if topic_name in topic_specific_qos else {}
+        # only add queue_size as depth if not already present in topic-specific qos
+        if "depth" not in params:
+            params["depth"] = queue_size
+        qos_profile = QoSProfile(**params)
+        return qos_profile
